@@ -1,11 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "Characters/SlashCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Characters/SlashCharacter.h"
+#include "Items/Item.h"
+#include "Items/Weapons/Weapon.h"
+#include "Animation/AnimMontage.h"
 
 // Sets default values
 ASlashCharacter::ASlashCharacter()
@@ -53,10 +56,14 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAxis(FName("MoveRight"), this, &ASlashCharacter::MoveRight);
 
 	PlayerInputComponent->BindAction(FName("Jump"),IE_Pressed,this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction(FName("Equip"), IE_Pressed, this, &ASlashCharacter::EKeyPressed);
+	PlayerInputComponent->BindAction(FName("Attack"), IE_Pressed, this, &ASlashCharacter::Attack);
+
 }
 
 void ASlashCharacter::MoveForward(float Value)
 {
+	if (ActionState == EActionState::EAS_Attacking) return;
 	if ((Controller != nullptr) && Value != 0.f) {
 		const FRotator ControlRotation =  GetControlRotation();
 		const FRotator YaWRotation(0.f, ControlRotation.Yaw, 0.f);
@@ -70,6 +77,7 @@ void ASlashCharacter::MoveForward(float Value)
 
 void ASlashCharacter::MoveRight(float Value)
 {
+	if (ActionState == EActionState::EAS_Attacking) return;
 	if ((Controller != nullptr) && Value != 0.f) {
 		const FRotator ControlRotation = GetControlRotation();
 		const FRotator YaWRotation(0.f, ControlRotation.Yaw, 0.f);
@@ -93,4 +101,57 @@ void ASlashCharacter::LookUp(float Value)
 {
 	AddControllerPitchInput(Value);
 }
+
+void ASlashCharacter::EKeyPressed()
+{
+	AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
+	if (OverlappingItem) 
+	{
+		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocekt"));
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+	}
+}
+
+void ASlashCharacter::Attack()
+{	
+	if(CanAttack()){
+		PlayAttackMontage();
+		ActionState = EActionState::EAS_Attacking;
+	}
+	
+}
+
+bool ASlashCharacter::CanAttack()
+{
+	return ActionState == EActionState::EAS_Unoccupied && CharacterState != ECharacterState::ECS_Unequipped;
+}
+
+void ASlashCharacter::PlayAttackMontage()
+{
+	UAnimInstance* AnimInstsance = GetMesh()->GetAnimInstance();
+	if (AnimInstsance && AttackMontage) {
+		AnimInstsance->Montage_Play(AttackMontage);
+		const int32 Selection = FMath::RandRange(0, 1);
+		FName SelectionName = FName();
+		switch (Selection)
+		{
+		case 0:
+			SelectionName = FName("Attack1");
+			break;
+		case 1:
+			SelectionName = FName("Attack2");
+			break;
+		default:
+			break;
+		}
+		AnimInstsance->Montage_JumpToSection(SelectionName, AttackMontage);
+	}
+}
+
+void ASlashCharacter::AttackEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
+
 

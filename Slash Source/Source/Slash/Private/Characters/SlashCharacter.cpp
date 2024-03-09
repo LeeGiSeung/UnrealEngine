@@ -9,6 +9,7 @@
 #include "Items/Item.h"
 #include "Items/Weapons/Weapon.h"
 #include "Animation/AnimMontage.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 ASlashCharacter::ASlashCharacter()
@@ -61,9 +62,17 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
+void ASlashCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
+{
+	if (EquippedWeapon && EquippedWeapon->GetWeaponBox()) {
+		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
+		EquippedWeapon->IgnoreActors.Empty();
+	}
+}
+
 void ASlashCharacter::MoveForward(float Value)
 {
-	if (ActionState == EActionState::EAS_Attacking) return;
+	if (ActionState != EActionState::EAS_Unoccupied) return;
 	if ((Controller != nullptr) && Value != 0.f) {
 		const FRotator ControlRotation =  GetControlRotation();
 		const FRotator YaWRotation(0.f, ControlRotation.Yaw, 0.f);
@@ -77,7 +86,7 @@ void ASlashCharacter::MoveForward(float Value)
 
 void ASlashCharacter::MoveRight(float Value)
 {
-	if (ActionState == EActionState::EAS_Attacking) return;
+	if (ActionState != EActionState::EAS_Unoccupied) return;
 	if ((Controller != nullptr) && Value != 0.f) {
 		const FRotator ControlRotation = GetControlRotation();
 		const FRotator YaWRotation(0.f, ControlRotation.Yaw, 0.f);
@@ -105,10 +114,27 @@ void ASlashCharacter::LookUp(float Value)
 void ASlashCharacter::EKeyPressed()
 {
 	AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
+	//땅에 떨어진 장비 줍기
 	if (OverlappingItem) 
 	{
 		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocekt"));
 		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+		OverlappingItem = nullptr;
+		EquippedWeapon = OverlappingWeapon;
+	}
+	else 
+	//가지고 있는 장비 착용 / 해제
+	{
+		if (CanDisarm()) {
+			PlayEquipMontage(FName("UnEquip"));
+			CharacterState = ECharacterState::ECS_Unequipped;
+			ActionState = EActionState::EAS_EquippingWeapon;
+		}
+		else if (CanArm()) {
+			PlayEquipMontage(FName("Equip"));
+			CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+			ActionState = EActionState::EAS_EquippingWeapon;
+		}
 	}
 }
 
@@ -126,12 +152,44 @@ bool ASlashCharacter::CanAttack()
 	return ActionState == EActionState::EAS_Unoccupied && CharacterState != ECharacterState::ECS_Unequipped;
 }
 
+
+
+bool ASlashCharacter::CanDisarm()
+{
+	return ActionState == EActionState::EAS_Unoccupied && CharacterState != ECharacterState::ECS_Unequipped;
+}
+
+bool ASlashCharacter::CanArm()
+{
+	return ActionState == EActionState::EAS_Unoccupied && CharacterState == ECharacterState::ECS_Unequipped && EquippedWeapon;
+}
+
+void ASlashCharacter::Disarm()
+{
+	if (EquippedWeapon) {
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
+	}
+}
+
+void ASlashCharacter::Arm()
+{
+	if (EquippedWeapon) {
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocekt"));
+	}
+}
+
+void ASlashCharacter::FinishEquippping()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
 void ASlashCharacter::PlayAttackMontage()
 {
 	UAnimInstance* AnimInstsance = GetMesh()->GetAnimInstance();
 	if (AnimInstsance && AttackMontage) {
 		AnimInstsance->Montage_Play(AttackMontage);
 		const int32 Selection = FMath::RandRange(0, 1);
+		UE_LOG(LogTemp, Warning, TEXT("%d"), Selection);
 		FName SelectionName = FName();
 		switch (Selection)
 		{
@@ -145,6 +203,15 @@ void ASlashCharacter::PlayAttackMontage()
 			break;
 		}
 		AnimInstsance->Montage_JumpToSection(SelectionName, AttackMontage);
+	}
+}
+
+void ASlashCharacter::PlayEquipMontage(FName SectionName)
+{
+	UAnimInstance* AnimInstsance = GetMesh()->GetAnimInstance();
+	if (AnimInstsance && EquipMontage) {
+		AnimInstsance->Montage_Play(EquipMontage);
+		AnimInstsance->Montage_JumpToSection(SectionName, EquipMontage);
 	}
 }
 

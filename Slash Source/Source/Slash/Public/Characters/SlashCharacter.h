@@ -8,6 +8,7 @@
 #include "SlashCharacter.generated.h"
 
 class AItem;
+class AWeapon;
 //enum 타입인걸 알리기 위해 E를 붙임
 
 UCLASS()
@@ -22,6 +23,11 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
+	UFUNCTION(BlueprintCallable)
+	void SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled);
+
+
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -44,6 +50,19 @@ protected:
 	
 	bool CanAttack();
 
+	void PlayEquipMontage(FName SectionName);
+	bool CanDisarm();
+	bool CanArm();
+
+	UFUNCTION(BlueprintCallable)
+	void Disarm();
+
+	UFUNCTION(BlueprintCallable)
+	void Arm();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishEquippping();
+
 private:
 
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
@@ -63,6 +82,12 @@ private:
 	//Animation Montages
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	class UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = Montages)
+	class UAnimMontage* EquipMontage;
+
+	UPROPERTY(VisibleAnywhere, Category = Weapon)
+	AWeapon* EquippedWeapon;
 
 
 public:

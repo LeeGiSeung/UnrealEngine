@@ -35,9 +35,11 @@ protected:
 
 	EItemState ItemState = EItemState::EIS_Hovering;
 
-private:
-
 	UPROPERTY(VisibleAnywhere)
 	class USphereComponent* Sphere;
+
+private:
+
+
 
 };

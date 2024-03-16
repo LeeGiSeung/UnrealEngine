@@ -117,7 +117,7 @@ void ASlashCharacter::EKeyPressed()
 	//¶¥¿¡ ¶³¾îÁø Àåºñ ÁÝ±â
 	if (OverlappingItem) 
 	{
-		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocekt"));
+		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocekt"), this, this);
 		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
 		OverlappingItem = nullptr;
 		EquippedWeapon = OverlappingWeapon;
@@ -189,7 +189,6 @@ void ASlashCharacter::PlayAttackMontage()
 	if (AnimInstsance && AttackMontage) {
 		AnimInstsance->Montage_Play(AttackMontage);
 		const int32 Selection = FMath::RandRange(0, 1);
-		UE_LOG(LogTemp, Warning, TEXT("%d"), Selection);
 		FName SelectionName = FName();
 		switch (Selection)
 		{

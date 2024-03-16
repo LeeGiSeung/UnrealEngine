@@ -38,6 +38,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	class USphereComponent* Sphere;
 
+	UPROPERTY(EditAnywhere)
+	class UNiagaraComponent* EmbersEffect;
+
 private:
 
 

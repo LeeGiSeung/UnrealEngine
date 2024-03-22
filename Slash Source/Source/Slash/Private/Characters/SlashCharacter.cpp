@@ -63,14 +63,6 @@ void ASlashCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
-void ASlashCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled)
-{
-	if (EquippedWeapon && EquippedWeapon->GetWeaponBox()) {
-		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
-		EquippedWeapon->IgnoreActors.Empty();
-	}
-}
-
 void ASlashCharacter::MoveForward(float Value)
 {
 	if (ActionState != EActionState::EAS_Unoccupied) return;
@@ -141,6 +133,7 @@ void ASlashCharacter::EKeyPressed()
 
 void ASlashCharacter::Attack()
 {	
+	Super::Attack();
 	if(CanAttack()){
 		PlayAttackMontage();
 		ActionState = EActionState::EAS_Attacking;
@@ -186,6 +179,7 @@ void ASlashCharacter::FinishEquippping()
 
 void ASlashCharacter::PlayAttackMontage()
 {
+	Super::PlayAttackMontage();
 	UAnimInstance* AnimInstsance = GetMesh()->GetAnimInstance();
 	if (AnimInstsance && AttackMontage) {
 		AnimInstsance->Montage_Play(AttackMontage);

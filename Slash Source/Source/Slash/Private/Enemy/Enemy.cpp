@@ -10,6 +10,7 @@
 #include "Components/AttributeComponent.h"
 #include "Perception/PawnSensingComponent.h"
 
+#include "Items/Weapons/Weapon.h"
 #include "HUD/HealthBarComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AIController.h"
@@ -23,8 +24,6 @@ AEnemy::AEnemy()
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetGenerateOverlapEvents(true);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
-
-	Attributes = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attributes"));
 
 	HealthBarWidget = CreateDefaultSubobject<UHealthBarComponent>(TEXT("HealthBar"));
 	HealthBarWidget->SetupAttachment(GetRootComponent());
@@ -54,16 +53,14 @@ void AEnemy::BeginPlay()
 		//UE_LOG(LogTemp, Warning, TEXT("PawnSensing Component!"));
 		PawnSensing->OnSeePawn.AddDynamic(this, &AEnemy::PawnSeen);
 	}
-	
-}
 
-void AEnemy::PlayHitReactMontage(const FName& SectionName)
-{
-	UAnimInstance* AnimInstsance = GetMesh()->GetAnimInstance();
-	if (AnimInstsance && HitReactMontage) {
-		AnimInstsance->Montage_Play(HitReactMontage);
-		AnimInstsance->Montage_JumpToSection(SectionName, HitReactMontage);
+	UWorld* World = GetWorld();
+	if (World && WeaponClass) {
+		AWeapon* DefaultWeapon = World->SpawnActor<AWeapon>(WeaponClass);
+		DefaultWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+		EquippedWeapon = DefaultWeapon;
 	}
+	
 }
 
 void AEnemy::Die()
@@ -126,7 +123,7 @@ void AEnemy::MoveToTarget(AActor* Target)
 	if (EnemyController == nullptr || Target == nullptr) return;
 		FAIMoveRequest MoveRequest;
 		MoveRequest.SetGoalActor(Target);
-		MoveRequest.SetAcceptanceRadius(15.f);
+		MoveRequest.SetAcceptanceRadius(50.f);
 		EnemyController->MoveTo(MoveRequest);
 	
 }
@@ -167,12 +164,46 @@ void AEnemy::PawnSeen(APawn* SeenPawn)
 	
 }
 
+void AEnemy::Attack()
+{
+	Super::Attack();
+	PlayAttackMontage();
+}
+
+void AEnemy::PlayAttackMontage()
+{
+	Super::PlayAttackMontage();
+
+	UAnimInstance* AnimInstsance = GetMesh()->GetAnimInstance();
+	if (AnimInstsance && AttackMontage) {
+		AnimInstsance->Montage_Play(AttackMontage);
+		const int32 Selection = FMath::RandRange(0, 2);
+		FName SelectionName = FName();
+		switch (Selection)
+		{
+		case 0:
+			SelectionName = FName("Attack1");
+			break;
+		case 1:
+			SelectionName = FName("Attack2");
+			break;
+		case 2:
+			SelectionName = FName("Attack3");
+			break;
+		default:
+			break;
+		}
+		AnimInstsance->Montage_JumpToSection(SelectionName, AttackMontage);
+	}
+}
+
 	
 
 
 void AEnemy::PatrolTimerFinished()
 {
 	MoveToTarget(PatrolTarget);
+
 }
 
 void AEnemy::Tick(float DeltaTime)
@@ -223,7 +254,7 @@ void AEnemy::CheckCombatTarget()
 		//공격 범위 안에서 플레이어 쫒기
 		EnemyState = EEnemyState::EES_Attacking;
 		//TODO: Attack montage
-		UE_LOG(LogTemp, Warning, TEXT("Attack"));
+		Attack();
 	}
 }
 
@@ -263,47 +294,6 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 
 }
 
-void AEnemy::DirectionalReact(const FVector& ImpactPoint)
-{
-	const FVector Forward = GetActorForwardVector();
-	//Lover Impact Point to the Enemy's Acotr Loactioon z
-	const FVector ImpactLowered(ImpactPoint.X, ImpactPoint.Y, GetActorLocation().Z);
-	//벡터를 가져와 정규화 한다음 ToHit에 저장
-	//수평 z값을 얻기 위해 ImpactPoint 대신에 ImpactLowered를 제작해서 사용
-	const FVector ToHit = (ImpactLowered - GetActorLocation()).GetSafeNormal();
-
-	//중요
-	const double CosTheta = FVector::DotProduct(Forward, ToHit);
-	//Take the inverse cosine (arc-cosine) of cos(theta) to get theta
-	double Theta = FMath::Acos(CosTheta);
-	Theta = FMath::RadiansToDegrees(Theta);
-
-
-	const FVector CrossProduct = FVector::CrossProduct(Forward, ToHit);
-	if (CrossProduct.Z < 0) {
-		Theta *= -1.f;
-	}
-
-	FName Section = FName("FromBack");
-
-	if (Theta >= -45.f && Theta < 45.f) {
-		Section = FName("FromFront");
-	}
-	else if (Theta >= -135.f && Theta < -45.f) {
-		Section = FName("FromLeft");
-	}
-	else  if (Theta >= 45.f && Theta < 135.f) {
-		Section = FName("FromRight");
-	}
-	PlayHitReactMontage(Section);
-
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Green, FString::Printf(TEXT("Theta: %f"), Theta));
-	}
-	//UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + Forward * 60.f, 5.f, FColor::Red, 5.f);
-	//UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation() + ToHit * 60.f, 5.f, FColor::Green, 5.F);
-}
-
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (Attributes && HealthBarWidget) {
@@ -315,5 +305,12 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	GetCharacterMovement()->MaxWalkSpeed = 300.f;
 	MoveToTarget(CombatTarget);
 	return DamageAmount;
+}
+
+void AEnemy::Destroyed()
+{
+	if (EquippedWeapon) {
+		EquippedWeapon->Destroy();
+	}
 }
 

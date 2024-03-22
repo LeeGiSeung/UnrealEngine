@@ -3,16 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "BaseCharacter.h"
 #include "CharacterTypes.h"
 #include "SlashCharacter.generated.h"
 
 class AItem;
-class AWeapon;
 //enum 타입인걸 알리기 위해 E를 붙임
 
 UCLASS()
-class SLASH_API ASlashCharacter : public ACharacter
+class SLASH_API ASlashCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -23,8 +22,7 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-	UFUNCTION(BlueprintCallable)
-	void SetWeaponCollisionEnabled(ECollisionEnabled::Type CollisionEnabled);
+
 
 
 
@@ -37,18 +35,16 @@ protected:
 	void Turn(float Value);
 	void LookUp(float Value);
 	void EKeyPressed();
-	void Attack();
+	virtual void Attack() override;
 
 
 	/*
 	Play Montage Functions
 	*/
-	void PlayAttackMontage();
+	virtual void PlayAttackMontage() override;
+	virtual void AttackEnd() override;
 	
-	UFUNCTION(BlueprintCallable)
-	void AttackEnd();
-	
-	bool CanAttack();
+	virtual bool CanAttack() override;
 
 	void PlayEquipMontage(FName SectionName);
 	bool CanDisarm();
@@ -79,15 +75,12 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	AItem* OverlappingItem;
 
-	//Animation Montages
-	UPROPERTY(EditDefaultsOnly, Category = Montages)
-	class UAnimMontage* AttackMontage;
+
 
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	class UAnimMontage* EquipMontage;
 
-	UPROPERTY(VisibleAnywhere, Category = Weapon)
-	AWeapon* EquippedWeapon;
+
 
 
 public:

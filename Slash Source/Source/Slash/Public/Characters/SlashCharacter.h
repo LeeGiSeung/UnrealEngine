@@ -21,11 +21,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-
-
-
-
+	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 protected:
 	virtual void BeginPlay() override;
 
@@ -37,50 +33,41 @@ protected:
 	void EKeyPressed();
 	virtual void Attack() override;
 
+	/*Combat*/
+	void EquipWeapon(AWeapon* Weapon);
+
 
 	/*
 	Play Montage Functions
 	*/
 	virtual void AttackEnd() override;
-	
 	virtual bool CanAttack() override;
-
 	void PlayEquipMontage(FName SectionName);
 	bool CanDisarm();
 	bool CanArm();
-
-	UFUNCTION(BlueprintCallable)
-	void Disarm();
-
-	UFUNCTION(BlueprintCallable)
+	void DisArm();
 	void Arm();
-
 	UFUNCTION(BlueprintCallable)
+	void AttachWeaponToBack();
+	UFUNCTION(BlueprintCallable)
+	void AttackWeaponToHand();
+	UFUNCTION(BlueprintCallable)
+
 	void FinishEquippping();
 
 private:
 
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
-
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	EActionState ActionState = EActionState::EAS_Unoccupied;
-
 	UPROPERTY(VisibleAnywhere)
 	class USpringArmComponent* SpringArm;
-
 	UPROPERTY(VisibleAnywhere)
 	class UCameraComponent* ViewCamera;
-
 	UPROPERTY(VisibleAnywhere)
 	AItem* OverlappingItem;
-
-
-
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	class UAnimMontage* EquipMontage;
-
-
-
 
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }

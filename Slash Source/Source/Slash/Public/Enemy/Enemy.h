@@ -25,7 +25,7 @@ public:
 	// <AActor>
 
 	/*<IHitInterface>*/
-	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	/*<IHitInterface>*/
 
 	UPROPERTY()
@@ -54,6 +54,9 @@ protected:
 	AActor* ChoosePatrolTarget();
 	UFUNCTION()
 	void PawnSeen(APawn* SeenPawn);
+
+
+
 private:
 	//AI Behaivor
 	void InitializeEnemy();
@@ -88,9 +91,6 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AWeapon> WeaponClass;
-
-	UPROPERTY()
-	AActor* CombatTarget;
 
 	UPROPERTY()
 	double CombatRadius = 500.f;

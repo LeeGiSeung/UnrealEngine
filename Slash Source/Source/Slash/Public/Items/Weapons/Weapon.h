@@ -40,7 +40,7 @@ protected:
 	void ExecuteGetHit(FHitResult& BoxHit);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void CreaterFields(const FVector& FieldLocation);
+	void CreateFields(const FVector& FieldLocation);
 
 private:
 

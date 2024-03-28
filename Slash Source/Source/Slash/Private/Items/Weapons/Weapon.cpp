@@ -84,10 +84,8 @@ void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 		);
 
 		ExecuteGetHit(BoxHit);
-		CreaterFields(BoxHit.ImpactPoint);
+		CreateFields(BoxHit.ImpactPoint);
 	}
-	
-
 }
 
 bool AWeapon::ActorIsSameType(AActor* OtherActor)
@@ -100,13 +98,8 @@ void AWeapon::ExecuteGetHit(FHitResult& BoxHit)
 	IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
 	if (HitInterface) {
 		//HitInterface->GetHit(BoxHit.ImpactPoint);
-		IHitInterface::Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
+		IHitInterface::Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint, GetOwner());
 	}
-}
-
-void AWeapon::CreaterFields(const FVector& FieldLocation)
-{
-
 }
 
 void AWeapon::BoxTrace(FHitResult& BoxHit)

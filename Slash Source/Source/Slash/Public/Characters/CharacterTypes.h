@@ -9,6 +9,7 @@ enum class ECharacterState : uint8 {
 UENUM(BluePrintType)
 enum class EActionState : uint8 {
 	EAS_Unoccupied UMETA(DisplayName ="Unoccupied"),
+	EAS_HitReaction UMETA(DisplayName = "HitReaction"),
 	EAS_Attacking UMETA(DisplayName = "Attacking"),
 	EAS_EquippingWeapon UMETA(DisplayName = "Equipping Weapon")
 };
@@ -27,11 +28,11 @@ enum EDeathPose {
 
 UENUM(BluePrintType)
 enum class EEnemyState : uint8 {
+	EES_NoState UMETA(DisplayName = "NoState"),
 	EES_Dead UMETA(DisplayName = "Dead"),
 	EES_Patrolling UMETA(DisplayName = "Patrolling"),
 	EES_Chasing UMETA(DisplayName = "Chasing"),
 	EES_Attacking UMETA(DisplayName = "Attacking"),
-	EES_Engaged UMETA(DisplayName = "Engaged"),
+	EES_Engaged UMETA(DisplayName = "Engaged")
 
-	EES_NoState UMETA(DisplayName = "NoState")
 };

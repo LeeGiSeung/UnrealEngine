@@ -34,6 +34,18 @@ void ABaseCharacter::Die()
 {
 }
 
+void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
+{
+	if (IsAlive() && Hitter) {
+		DirectionalReact(Hitter->GetActorLocation());
+	}
+
+	else Die();
+
+	PlayHitSound(ImpactPoint);
+	SpawnHitParticles(ImpactPoint);
+}
+
 void ABaseCharacter::PlayHitReactMontage(const FName& SectionName)
 {
 	UAnimInstance* AnimInstsance = GetMesh()->GetAnimInstance();
@@ -139,6 +151,37 @@ int32 ABaseCharacter::PlayDeathMontage()
 void ABaseCharacter::DisableCapsule()
 {
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void ABaseCharacter::StopAttackMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance) {
+		AnimInstance->Montage_Stop(0.25, AttackMontage);
+	}
+}
+
+FVector ABaseCharacter::GetTranslationWarpTarget()
+{
+	if (CombatTarget == nullptr) return FVector();
+	const FVector CombatTargetLocation = CombatTarget->GetActorLocation();
+	const FVector Location = GetActorLocation();
+
+	//GetSafeNormal 벡터의 정규화된 복사본을 가져오고, 길이를 기준으로 그렇게 하는 것이 안전한지 확인합니다.
+	FVector TargetToMe = (Location - CombatTargetLocation).GetSafeNormal();
+
+	TargetToMe *= WarpTargetDistance;
+
+	return CombatTargetLocation + TargetToMe;
+
+}
+
+FVector ABaseCharacter::GetRotationWarpTarget()
+{
+	if (CombatTarget) {
+		return CombatTarget->GetActorLocation();
+	}
+	return FVector();
 }
 
 bool ABaseCharacter::CanAttack()

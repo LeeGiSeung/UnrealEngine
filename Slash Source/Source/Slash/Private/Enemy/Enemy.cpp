@@ -54,10 +54,9 @@ void AEnemy::SpawnDefaultWeapon()
 
 void AEnemy::Die()
 {
-
+	Super::Die();
 	EnemyState = EEnemyState::EES_Dead;
 
-	PlayDeathMontage();
 	ClearAttackTimer();
 	HideHealthBar();
 	DisableCapsule();
@@ -150,8 +149,9 @@ void AEnemy::PawnSeen(APawn* SeenPawn)
 
 void AEnemy::Attack()
 {
-	EnemyState = EEnemyState::EES_Engaged;
 	Super::Attack();
+	if (CombatTarget == nullptr) return;
+	EnemyState = EEnemyState::EES_Engaged;
 	PlayAttackMontage();
 }
 
@@ -162,20 +162,6 @@ void AEnemy::HandleDamage(float DamageAmount)
 		HealthBarWidget->SetHealthPercent(Attributes->GetHealthPercent());
 	}
 
-}
-
-int32 AEnemy::PlayDeathMontage()
-{
-	const int32 Selection = Super::PlayDeathMontage();
-	TEnumAsByte<EDeathPose> Pose(Selection);
-
-	if (Pose < EDeathPose::EDP_MAX) 
-	{
-		DeathPose = Pose;
-	}
-
-	return Selection;
-	
 }
 
 bool AEnemy::CanAttack()

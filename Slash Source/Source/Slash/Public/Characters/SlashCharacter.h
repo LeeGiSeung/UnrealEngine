@@ -8,6 +8,7 @@
 #include "SlashCharacter.generated.h"
 
 class AItem;
+class USlashOverlay;
 //enum 타입인걸 알리기 위해 E를 붙임
 
 UCLASS()
@@ -19,6 +20,8 @@ public:
 	// Sets default values for this character's properties
 	ASlashCharacter();
 	virtual void Tick(float DeltaTime) override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	virtual void Jump() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
@@ -36,7 +39,7 @@ protected:
 
 	/*Combat*/
 	void EquipWeapon(AWeapon* Weapon);
-
+	virtual void Die() override;
 
 	/*
 	Play Montage Functions
@@ -62,6 +65,13 @@ protected:
 	void HitReactEnd();
 
 private:
+	//HUD 초기화
+	void InitializeSlashOverlay();
+	//HUD HealthBar Update
+	void SetHUDHealth();
+
+	bool IsUnoccupied();
+
 
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -75,7 +85,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	class UAnimMontage* EquipMontage;
 
+	UPROPERTY()
+	USlashOverlay* SlashOverlay;
+
+
+
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
 	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
+	FORCEINLINE EActionState GetActionState() const { return ActionState; }
 };

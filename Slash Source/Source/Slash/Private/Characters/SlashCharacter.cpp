@@ -14,6 +14,8 @@
 #include "HUD/SlashHUD.h"
 #include "HUD/SlashOverlay.h"
 #include "Components/AttributeComponent.h"
+#include "Items/Soul.h"
+#include "Items/Treasure.h"
 
 // Sets default values
 ASlashCharacter::ASlashCharacter()
@@ -130,6 +132,29 @@ void ASlashCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* 
 		ActionState = EActionState::EAS_HitReaction;
 	}
 	
+}
+
+void ASlashCharacter::SetOverlappingItem(AItem* Item)
+{
+	OverlappingItem = Item;
+}
+
+void ASlashCharacter::AddSouls(ASoul* Soul)
+{
+	if (Attributes && SlashOverlay) {
+		Attributes->AddSouls(Soul->GetSouls());
+		SlashOverlay->SetSouls(Attributes->GetSouls());
+	}
+}
+
+void ASlashCharacter::AddGold(ATreasure* Treasure)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AddGold Go"));
+	if (Attributes && SlashOverlay) {
+		UE_LOG(LogTemp, Warning, TEXT("AddGold"));
+		Attributes->AddGold(Treasure->GetGold());
+		SlashOverlay->SetGold(Attributes->GetGold());
+	}
 }
 
 void ASlashCharacter::MoveForward(float Value)

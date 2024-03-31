@@ -1,10 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Items/Item.h"
-#include "Characters/SlashCharacter.h"
+#include "Interfaces/PickupInterface.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AItem::AItem()
@@ -20,8 +22,8 @@ AItem::AItem()
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
 	Sphere->SetupAttachment(GetRootComponent());
 
-	EmbersEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Embers"));
-	EmbersEffect->SetupAttachment(GetRootComponent());
+	ItemEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Embers"));
+	ItemEffect->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -37,29 +39,39 @@ void AItem::BeginPlay()
 
 void AItem::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//const FString OtherActorName = OtherActor->GetName();
-	//if (GEngine) {
-		//GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red, OtherActorName);
-	//}
-	ASlashCharacter* SlashCharacter = Cast<ASlashCharacter>(OtherActor);
-	if (SlashCharacter) {
-		SlashCharacter->SetOverlappingItem(this);
+
+	IPickupInterface* PickupInterface = Cast<IPickupInterface>(OtherActor);
+	if (PickupInterface) {
+		PickupInterface->SetOverlappingItem(this);
 	}
 }
 
 void AItem::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	//const FString OtherActorName = FString("Ending Overlap with : ") + OtherActor->GetName();
-	//if (GEngine) {
-		//GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Blue, OtherActorName);
-	//}
-	ASlashCharacter* SlashCharacter = Cast<ASlashCharacter>(OtherActor);
-	if (SlashCharacter) {
-		SlashCharacter->SetOverlappingItem(nullptr);
+
+	IPickupInterface* PickupInterface = Cast<IPickupInterface>(OtherActor);
+	if (PickupInterface) {
+		PickupInterface->SetOverlappingItem(nullptr);
 	}
 }
 
-// Called every frame
+void AItem::SpawnPickupSystem()
+{
+	if (PickupEffect) {
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, PickupEffect, GetActorLocation());
+	}
+}
+
+void AItem::SpawnPickupSound()
+{
+	if (PickupSound) {
+		UGameplayStatics::SpawnSoundAtLocation(
+			this, PickupSound, GetActorLocation()
+		);
+	}
+}
+
+
 void AItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

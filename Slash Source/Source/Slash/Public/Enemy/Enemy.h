@@ -38,6 +38,7 @@ protected:
 	//<AActor>
 
 	virtual void Die() override;
+	void SpawnSoul();
 	bool InTargetRange(AActor* Target, double Radius);
 	void MoveToTarget(AActor* Target);
 	virtual void Attack() override;
@@ -129,4 +130,6 @@ private:
 
 	FTimerHandle AttackTimer;
 
+	UPROPERTY(EditAnywhere, Category = Combat)
+	TSubclassOf<class ASoul> SoulClass;
 };

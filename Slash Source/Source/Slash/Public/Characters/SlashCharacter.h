@@ -42,6 +42,11 @@ protected:
 	void LookUp(float Value);
 	void EKeyPressed();
 	virtual void Attack() override;
+	void Dodge();
+
+	bool HasEnoughStamina();
+
+	bool IsOuccupied();
 
 	/*Combat*/
 	void EquipWeapon(AWeapon* Weapon);
@@ -52,6 +57,7 @@ protected:
 	*/
 	virtual void AttackEnd() override;
 	virtual bool CanAttack() override;
+	virtual void DodgeEnd() override;
 	void PlayEquipMontage(FName SectionName);
 	bool CanDisarm();
 	bool CanArm();

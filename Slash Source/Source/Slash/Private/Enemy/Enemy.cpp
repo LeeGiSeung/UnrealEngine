@@ -9,6 +9,7 @@
 #include "HUD/HealthBarComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AIController.h"
+#include "Items/Soul.h"
 
 AEnemy::AEnemy()
 {
@@ -63,7 +64,20 @@ void AEnemy::Die()
 	SetLifeSpan(DeathLifeSpan = 8.f);
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+	SpawnSoul();
 
+}
+
+void AEnemy::SpawnSoul()
+{
+	UWorld* World = GetWorld();
+	if (World && SoulClass) {
+		const FVector SpawnLocation = GetActorLocation() + FVector(0.f, 0.f, 40.f);
+		ASoul* SpawnedSoul = World->SpawnActor<ASoul>(SoulClass, SpawnLocation, GetActorRotation());
+		if (SpawnedSoul) {
+			SpawnedSoul->SetSuls(Attributes->GetSouls());
+		}
+	}
 }
 
 bool AEnemy::InTargetRange(AActor* Target, double Radius)

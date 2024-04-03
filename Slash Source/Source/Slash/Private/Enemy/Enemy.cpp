@@ -54,13 +54,14 @@ void AEnemy::SpawnDefaultWeapon()
 }
 
 void AEnemy::Die()
+
 {
 	Super::Die();
 	EnemyState = EEnemyState::EES_Dead;
-
 	ClearAttackTimer();
 	HideHealthBar();
 	DisableCapsule();
+
 	SetLifeSpan(DeathLifeSpan = 8.f);
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
